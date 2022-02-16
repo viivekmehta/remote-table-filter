@@ -27,7 +27,7 @@
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>6f2f227177210110266f78adaf5a99b0</sys_id>
-        <sys_mod_count>16</sys_mod_count>
+        <sys_mod_count>0</sys_mod_count>
         <sys_name>Get Action Details</sys_name>
         <sys_overrides/>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
@@ -35,7 +35,7 @@
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
         <sys_update_name>sys_hub_action_type_definition_6f2f227177210110266f78adaf5a99b0</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-10 06:49:44</sys_updated_on>
+        <sys_updated_on>2022-02-16 06:17:31</sys_updated_on>
         <system_level>false</system_level>
         <type/>
     </sys_hub_action_type_definition>
@@ -202,18 +202,6 @@
     </sys_variable_value>
     <sys_element_mapping action="delete_multiple" query="id=1e107e7177210110266f78adaf5a9949"/>
     <sys_element_mapping action="INSERT_OR_UPDATE">
-        <field>application</field>
-        <id>1e107e7177210110266f78adaf5a9949</id>
-        <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2022-02-09 09:26:28</sys_created_on>
-        <sys_id>e5ab7e7977210110266f78adaf5a999a</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-09 09:26:28</sys_updated_on>
-        <table>var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7</table>
-        <value/>
-    </sys_element_mapping>
-    <sys_element_mapping action="INSERT_OR_UPDATE">
         <field>response_body</field>
         <id>1e107e7177210110266f78adaf5a9949</id>
         <sys_created_by>admin</sys_created_by>
@@ -224,18 +212,6 @@
         <sys_updated_on>2022-02-09 09:26:28</sys_updated_on>
         <table>var__m_sys_hub_step_ext_input_1e107e7177210110266f78adaf5a9949</table>
         <value>{{step[ecfdc10a-4e9a-4bf8-b9ad-2b4d6e8dec34].response_body}}</value>
-    </sys_element_mapping>
-    <sys_element_mapping action="INSERT_OR_UPDATE">
-        <field>script</field>
-        <id>1e107e7177210110266f78adaf5a9949</id>
-        <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2022-02-09 09:26:28</sys_created_on>
-        <sys_id>a9ab7e7977210110266f78adaf5a999a</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-09 09:26:28</sys_updated_on>
-        <table>var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7</table>
-        <value/>
     </sys_element_mapping>
     <sys_element_mapping action="delete_multiple" query="table=var__m_sys_hub_step_ext_output_1e107e7177210110266f78adaf5a9949^id=1e107e7177210110266f78adaf5a9949"/>
     <sys_element_mapping action="delete_multiple" query="table=var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7^id=1e107e7177210110266f78adaf5a9949"/>
@@ -498,11 +474,11 @@
         <sys_created_on>2022-02-09 09:31:19</sys_created_on>
         <sys_id>6cccbab977210110266f78adaf5a99be</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Outputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_1e107e7177210110266f78adaf5a9949_action_outputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:31:19</sys_updated_on>
         <url/>
@@ -521,11 +497,11 @@
         <sys_created_on>2022-02-09 09:31:19</sys_created_on>
         <sys_id>e8ccbab977210110266f78adaf5a99b8</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Inputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_1e107e7177210110266f78adaf5a9949_action_inputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:31:19</sys_updated_on>
         <url/>
@@ -898,11 +874,11 @@
         <sys_created_on>2022-02-09 09:35:45</sys_created_on>
         <sys_id>a1cd3af977210110266f78adaf5a9955</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Credential Value</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_9a103e7177210110266f78adaf5a99fc_sn_auth_token_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:45</sys_updated_on>
         <url/>
@@ -1347,11 +1323,11 @@
         <sys_created_on>2022-02-09 08:36:00</sys_created_on>
         <sys_id>52103e7177210110266f78adaf5a99fa</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Sys ID</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_input_6f2f227177210110266f78adaf5a99b0_action_sys_id_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 08:36:00</sys_updated_on>
         <url/>
@@ -1371,11 +1347,11 @@
         <sys_created_on>2022-02-09 09:26:29</sys_created_on>
         <sys_id>25ab7e7977210110266f78adaf5a99c1</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Don't Treat as Error</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_6f2f227177210110266f78adaf5a99b0___dont_treat_as_error___en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:26:29</sys_updated_on>
         <url/>
@@ -1394,11 +1370,11 @@
         <sys_created_on>2022-02-09 09:31:20</sys_created_on>
         <sys_id>34ccbab977210110266f78adaf5a99db</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Outputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_6f2f227177210110266f78adaf5a99b0_action_outputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:31:20</sys_updated_on>
         <url/>
@@ -1417,11 +1393,11 @@
         <sys_created_on>2022-02-09 09:26:28</sys_created_on>
         <sys_id>6dab7e7977210110266f78adaf5a99a9</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Status</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_6f2f227177210110266f78adaf5a99b0___action_status___en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:26:28</sys_updated_on>
         <url/>
@@ -1440,11 +1416,11 @@
         <sys_created_on>2022-02-09 09:31:20</sys_created_on>
         <sys_id>f0ccbab977210110266f78adaf5a99d4</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Inputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_6f2f227177210110266f78adaf5a99b0_action_inputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:31:20</sys_updated_on>
         <url/>
@@ -1950,11 +1926,11 @@
         <sys_created_on>2022-02-09 09:35:51</sys_created_on>
         <sys_id>c7cd7af977210110266f78adaf5a995b</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Credential Value</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_83cd7af977210110266f78adaf5a994f_sn_auth_token_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
         <url/>
@@ -2043,18 +2019,6 @@
     </sys_variable_value>
     <sys_element_mapping action="delete_multiple" query="id=c7cd7af977210110266f78adaf5a9969"/>
     <sys_element_mapping action="INSERT_OR_UPDATE">
-        <field>application</field>
-        <id>c7cd7af977210110266f78adaf5a9969</id>
-        <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2022-02-09 09:35:51</sys_created_on>
-        <sys_id>cbcd7af977210110266f78adaf5a99a0</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
-        <table>var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7</table>
-        <value/>
-    </sys_element_mapping>
-    <sys_element_mapping action="INSERT_OR_UPDATE">
         <field>response_body</field>
         <id>c7cd7af977210110266f78adaf5a9969</id>
         <sys_created_by>admin</sys_created_by>
@@ -2065,18 +2029,6 @@
         <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
         <table>var__m_sys_hub_step_ext_input_c7cd7af977210110266f78adaf5a9969</table>
         <value>{{step[ecfdc10a-4e9a-4bf8-b9ad-2b4d6e8dec34].response_body}}</value>
-    </sys_element_mapping>
-    <sys_element_mapping action="INSERT_OR_UPDATE">
-        <field>script</field>
-        <id>c7cd7af977210110266f78adaf5a9969</id>
-        <sys_created_by>admin</sys_created_by>
-        <sys_created_on>2022-02-09 09:35:51</sys_created_on>
-        <sys_id>8fcd7af977210110266f78adaf5a99a0</sys_id>
-        <sys_mod_count>0</sys_mod_count>
-        <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
-        <table>var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7</table>
-        <value/>
     </sys_element_mapping>
     <sys_element_mapping action="delete_multiple" query="table=var__m_sys_hub_step_ext_output_c7cd7af977210110266f78adaf5a9969^id=c7cd7af977210110266f78adaf5a9969"/>
     <sys_element_mapping action="delete_multiple" query="table=var__m_sys_flow_step_definition_input_106afb6647032200b4fad7527c9a71e7^id=c7cd7af977210110266f78adaf5a9969"/>
@@ -2339,11 +2291,11 @@
         <sys_created_on>2022-02-09 09:35:51</sys_created_on>
         <sys_id>8fcd7af977210110266f78adaf5a999c</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Outputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_c7cd7af977210110266f78adaf5a9969_action_outputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
         <url/>
@@ -2362,11 +2314,11 @@
         <sys_created_on>2022-02-09 09:35:51</sys_created_on>
         <sys_id>cfcd7af977210110266f78adaf5a9989</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Inputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_step_ext_output_c7cd7af977210110266f78adaf5a9969_action_inputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
         <url/>
@@ -2811,11 +2763,11 @@
         <sys_created_on>2022-02-09 09:35:51</sys_created_on>
         <sys_id>7ecd7af977210110266f78adaf5a994c</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Sys ID</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_input_b2cd7af977210110266f78adaf5a9942_action_sys_id_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:51</sys_updated_on>
         <url/>
@@ -2835,11 +2787,11 @@
         <sys_created_on>2022-02-09 09:35:52</sys_created_on>
         <sys_id>07cd7af977210110266f78adaf5a99bd</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Status</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_b2cd7af977210110266f78adaf5a9942___action_status___en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:52</sys_updated_on>
         <url/>
@@ -2858,11 +2810,11 @@
         <sys_created_on>2022-02-09 09:35:52</sys_created_on>
         <sys_id>4bcd7af977210110266f78adaf5a99c8</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Don't Treat as Error</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_b2cd7af977210110266f78adaf5a9942___dont_treat_as_error___en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:52</sys_updated_on>
         <url/>
@@ -2881,11 +2833,11 @@
         <sys_created_on>2022-02-09 09:35:52</sys_created_on>
         <sys_id>8fcd7af977210110266f78adaf5a99e3</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Outputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_b2cd7af977210110266f78adaf5a9942_action_outputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:52</sys_updated_on>
         <url/>
@@ -2904,11 +2856,11 @@
         <sys_created_on>2022-02-09 09:35:52</sys_created_on>
         <sys_id>c7cd7af977210110266f78adaf5a99dc</sys_id>
         <sys_mod_count>0</sys_mod_count>
-        <sys_name/>
+        <sys_name>Action Inputs</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
-        <sys_update_name/>
+        <sys_update_name>sys_documentation_var__m_sys_hub_action_output_b2cd7af977210110266f78adaf5a9942_action_inputs_en</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
         <sys_updated_on>2022-02-09 09:35:52</sys_updated_on>
         <url/>

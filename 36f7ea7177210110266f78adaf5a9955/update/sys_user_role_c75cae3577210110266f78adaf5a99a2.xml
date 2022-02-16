@@ -4,12 +4,12 @@
         <can_delegate>true</can_delegate>
         <description/>
         <elevated_privilege>false</elevated_privilege>
+        <encryption_context/>
         <grantable>true</grantable>
         <includes_roles/>
         <name>sn_rt_csm_usecase.ms_dynamics_crm_contacts_rt_user</name>
         <requires_subscription>-1</requires_subscription>
         <scoped_admin>false</scoped_admin>
-        <snbe>false</snbe>
         <suffix>ms_dynamics_crm_contacts_rt_user</suffix>
         <sys_class_name>sys_user_role</sys_class_name>
         <sys_created_by>admin</sys_created_by>

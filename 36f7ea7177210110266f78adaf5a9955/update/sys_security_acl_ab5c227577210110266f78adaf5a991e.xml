@@ -5,7 +5,6 @@
         <advanced>false</advanced>
         <condition/>
         <description>Default access control on sn_rt_csm_usecase_st_ms_dynamics_crm_contacts_rt</description>
-        <express_security>false</express_security>
         <name>sn_rt_csm_usecase_st_ms_dynamics_crm_contacts_rt</name>
         <operation display_value="write">write</operation>
         <script/>

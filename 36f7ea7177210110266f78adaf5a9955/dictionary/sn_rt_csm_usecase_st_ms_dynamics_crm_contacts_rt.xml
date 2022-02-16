@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element attributes="read_only=true" label="MS Dynamics CRM Contacts-RT" max_length="40" name="sn_rt_csm_usecase_st_ms_dynamics_crm_contacts_rt" type="collection">
+        <element label="Account ID" max_length="40" name="account_id" type="string"/>
+        <element label="Business Phone" max_length="40" name="business_phone" type="string"/>
+        <element label="Contact ID" max_length="40" name="contact_id" type="string"/>
+        <element label="Email" max_length="40" name="email" type="string"/>
+        <element label="First Name" max_length="40" name="first_name" type="string"/>
+        <element label="Last Name" max_length="40" name="last_name" type="string"/>
+    </element>
+</database>
