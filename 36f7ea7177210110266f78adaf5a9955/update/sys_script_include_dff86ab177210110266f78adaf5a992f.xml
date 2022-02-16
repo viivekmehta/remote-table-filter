@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>sn_rt_csm_usecase.CSMUseCaseUtils</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <name>CSMUseCaseUtils</name>
+        <script><![CDATA[var CSMUseCaseUtils = Class.create();
+CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+
+	fetchActions: function() {
+        var actions = [];
+        var fields = new GlideRecord('sys_hub_action_type_definition');
+        fields.addQuery("action_template", "DATASTREAM");
+        fields.query();
+
+        while (fields.next()) {
+            actions.push({
+                name: (fields.sys_scope.scope).toString() + "." + (fields.internal_name).toString(),
+                label: fields.name.toString(),
+                sys_id: fields.sys_id.toString()
+            });
+        }
+
+        return JSON.stringify(actions);
+    },
+
+    fetchTables: function() {
+        var tables = [];
+        var fields = new GlideRecord('sys_db_object');
+        fields.query();
+
+        while (fields.next()) {
+            tables.push({
+                name: fields.name.toString(),
+                label: fields.label.toString() + " [" + fields.name.toString() + "] "
+            });
+        }
+        return JSON.stringify(tables);
+    },
+
+    fetchRemoteTables: function() {
+        var remoteTables = [];
+        var fields = new GlideRecord('sys_db_object');
+        fields.addQuery('scriptable_table', true);
+        fields.query();
+
+        while (fields.next()) {
+            remoteTables.push({
+                name: fields.name.toString(),
+                label: fields.label.toString()
+            });
+        }
+
+        return JSON.stringify(remoteTables);
+    },
+
+    fetchTheColumnsForTable: function() {
+        var fieldslist = [];
+        var tableName = this.getParameter('table_name');
+        var fields = new GlideRecord('sys_dictionary');
+        fields.addQuery('name', tableName); // Write the table name for which you need field name list
+        fields.query();
+
+        while (fields.next()) {
+            if (fields.element.toString() !== "sys_id") {
+                fieldslist.push({
+                    name: fields.element.toString(),
+                    label: fields.column_label.toString(),
+                    type: fields.internal_type.toString()
+                });
+            }
+        }
+
+        return JSON.stringify(fieldslist);
+    },
+
+
+    fetchOutputsForAction: function() {
+        try {
+            var actionSysID = this.getParameter('actionSysID');
+            var inputs = {};
+            inputs['action_sys_id'] = actionSysID;
+            var result = sn_fd.FlowAPI.getRunner().action('sn_rt_csm_usecase.get_action_details').inForeground().withInputs(inputs).run();
+            var outputs = result.getOutputs();
+            var outputDetails = outputs['action_outputs'];
+            return JSON.stringify(outputDetails);
+        } catch (ex) {
+            var message = ex.getMessage();
+            gs.error(message);
+        }
+    },
+
+    generateRelationshipScript: function(parentToRelatedColumnsMapArray) {
+        var relationshipScript = "\
+	var filterElements = [";
+        gs.info(typeof parentToRelatedColumnsMapArray + " , " + parentToRelatedColumnsMapArray + JSON.stringify(parentToRelatedColumnsMapArray));
+        parentToRelatedColumnsMapArray.map(function(column) {
+            relationshipScript += "\n\
+		{\n\
+			\"filterElement\": \"" + column['correlationColumn'] + "\",\n\
+			\"filterValue\": (parent." + column['parentColumn'] + ").toString()\n\
+		},";
+        });
+        relationshipScript += "\n\
+	];\n\
+	\
+	session.putClientData(\"filterElements\",JSON.stringify(filterElements));\n\
+	session.putClientData(\"isFilterFromSessionStorage\",\"true\");";
+
+        return relationshipScript;
+    },
+
+    generateRelationship: function(parentTableName, relatedTableName, relationshipName, parentToRelatedColumnsMapArray) {
+        parentToRelatedColumnsMapArray = JSON.parse(parentToRelatedColumnsMapArray);
+        var relationshipScript = this.generateRelationshipScript(parentToRelatedColumnsMapArray);
+        var queryWithScript = "var session = gs.getSession();\n\
+(function refineQuery(current, parent) {\n\
+" + relationshipScript + "\n\
+\n\
+})(current, parent);";
+        try {
+            var now_GR = new GlideRecord('sys_relationship');
+            now_GR.initialize();
+            now_GR.setValue('name', relationshipName);
+            now_GR.setValue('basic_apply_to', parentTableName);
+            now_GR.setValue('basic_query_from', relatedTableName);
+            now_GR.setValue('query_with', queryWithScript);
+            if (now_GR.insert()) {
+                return "Success";
+            } else {
+                return "Error";
+            }
+        } catch (e) {
+            return "Error";
+        }
+    },
+
+    doesRecordSatisfyFilters: function(recordObject, filterElements, column_to_outputs_map) {
+		gs.info("Checking record filters..");
+        var doesRecordSatisfyFilters = true,
+            filterElement, filter;
+        for (var i = 0; i < filterElements.length; i++) {
+            filter = filterElements[i];
+            filterElement = column_to_outputs_map[filter['filterElement']]; //brings action output name from the column name
+            if (filter['filterValue'] !== recordObject[filterElement]) {
+                doesRecordSatisfyFilters = false;
+                break;
+            }
+        }
+        return doesRecordSatisfyFilters;
+    },
+
+    generateTableColumnMapping: function(columnsToMap, actionOutputsToMap) {
+        var rulesToAdd = ".addRule(\"sys_id\", \"$.sys_id\")\n";
+		var column_to_outputs_map = "{\n";
+        columnsToMap.map(function(column, index) {
+            if (index + 1 !== columnsToMap.length) {
+                rulesToAdd += "\t\t\t.addRule(\"" + column + "\", \"$." + actionOutputsToMap[index] + "\")\n";
+				column_to_outputs_map += "\t\t\""+column+"\": \""+actionOutputsToMap[index]+"\",\n";
+            } else {
+                rulesToAdd += "\t\t\t.addRule(\"" + column + "\", \"$." + actionOutputsToMap[index] + "\");";
+				column_to_outputs_map += "\t\t\""+column+"\": \""+actionOutputsToMap[index]+"\"\n";
+            }
+        });
+		column_to_outputs_map += "\t};";
+        return {
+			"rulesToAdd": rulesToAdd,
+			"column_to_outputs_map": column_to_outputs_map
+		};
+    },
+
+    generateRemoteTableDefinition: function(actionName, remoteTableName, remoteTableDefinitionName, columnsToMap, actionOutputsToMap) {
+        columnsToMap = columnsToMap.split(",");
+        actionOutputsToMap = actionOutputsToMap.split(",");
+        var tableColumnMapping = this.generateTableColumnMapping(columnsToMap, actionOutputsToMap);
+        var script = "(function executeQuery(v_table, v_query) {\n\
+	var column_to_outputs_map = "+tableColumnMapping["column_to_outputs_map"]+"\n\
+    fetchRecords(v_table, v_query);\n\
+    function fetchRecords(v_table, v_query) {\n\
+		var session = gs.getSession();\n\
+		var isFilterFromSessionStorage = session.getClientData('isFilterFromSessionStorage');\n\
+		var filterElements = JSON.parse(session.getClientData('filterElements'));\n\
+        var recordKeys = " + JSON.stringify(actionOutputsToMap) + ";\n\
+		var len = recordKeys.length;\n\
+        try {\n\
+            // Execute Data Stream Action\"\n\
+            var outputs = sn_fd.FlowAPI.executeDataStreamAction('" + actionName + "');\n\
+			var CSMUseCaseUtil = new sn_rt_csm_usecase.CSMUseCaseUtils();\n\
+            var i = 0;\n\
+            // Process each item in the data stream\n\
+            while (outputs.hasNext()) {\n\
+                // Get a single item from the data stream\n\
+                var response = outputs.next();\n\
+				var doesRecordSatisfyFilters = true;\n\
+				if(isFilterFromSessionStorage == \"true\") {\n\
+					doesRecordSatisfyFilters = CSMUseCaseUtil.doesRecordSatisfyFilters(response, filterElements, column_to_outputs_map);\n\
+				}\n\
+                // Use the item\n\
+				if(doesRecordSatisfyFilters) {\n\
+					if (response && Object.keys(response).length) {\n\
+						var recordDetails = {};\n\
+						var sys_id_string = i.toString();\n\
+						for (var j = 0; j < len; j++) {\n\
+							var key = recordKeys[j];\n\
+							if (response.hasOwnProperty(key)) {\n\
+								sys_id_string += response[key];\n\
+								recordDetails[key] = response[key];\n\
+							}\n\
+						}\n\
+						var sysId = new GlideDigest().getMD5Hex(sys_id_string);\n\
+						recordDetails['sys_id'] = sysId;\n\
+						var result = [];\n\
+						result.push(recordDetails);\n\
+						var respBody = {\n\
+							\"result\": result\n\
+						};\n\
+						var responseBody = JSON.stringify(respBody);\n\
+						var transformerDefinition = getTransformerDefinition();\n\
+						var transformer = new sn_tfrm.Transformer(transformerDefinition, responseBody);\n\
+						while (transformer.transform()) {\n\
+							var row = transformer.getRow();\n\
+							v_table.addRow(row);\n\
+						}\n\
+						i++;\n\
+					}\n\
+				}\n\
+            }\n\
+			session.putClientData(\"isFilterFromSessionStorage\",\"false\");\n\
+        } catch (ex) {\n\
+            var message = ex.getMessage();\n\
+            gs.error(message);\n\
+        } finally {\n\
+            outputs.close();\n\
+        }\n\
+    }\n\
+    function getTransformerDefinition() {\n\
+        // create a rule list to map a field to its element path\n\
+        var ruleList = new sn_tfrm.TransformerRuleList()\n\
+            .fromJSON() // the response body is a JSON\n\
+            // 'active' field maps to path '$.active'\n\
+			" + tableColumnMapping["rulesToAdd"] + "\n\
+        var recordPath = \"$.result\";\n\
+        return new sn_tfrm.TransformerDefinition(ruleList, recordPath);\n\
+    }\n\
+})(v_table, v_query);";
+        try {
+            var now_GR = new GlideRecord('sys_script_vtable');
+            now_GR.initialize();
+            now_GR.setValue('name', remoteTableDefinitionName);
+            now_GR.setValue('table', remoteTableName);
+            now_GR.setValue('script', script);
+            now_GR.setValue('active', false);
+            if (now_GR.insert()) {
+                return "Success";
+            } else {
+                return "Error";
+            }
+        } catch (e) {
+            return "Error";
+        }
+    },
+	
+    type: 'CSMUseCaseUtils'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-02-09 08:05:57</sys_created_on>
+        <sys_id>dff86ab177210110266f78adaf5a992f</sys_id>
+        <sys_mod_count>12</sys_mod_count>
+        <sys_name>CSMUseCaseUtils</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_script_include_dff86ab177210110266f78adaf5a992f</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-02-13 07:43:30</sys_updated_on>
+    </sys_script_include>
+</record_update>

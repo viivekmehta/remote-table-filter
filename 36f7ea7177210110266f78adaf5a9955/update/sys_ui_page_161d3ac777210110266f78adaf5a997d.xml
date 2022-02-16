@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[var parentTable, relatedTable, columnsOfParentTable, columnsOfRelatedTable, parentToRelatedColumnsMapArray = [], columnsMappingElement = "", containerCounter = 0, parentTableColumnsOptions="", relatedTableColumnsOptions="";
+
+window.onload = function() {
+	fetchTables();
+};
+
+function getSelectedContainerNumber(elementID) {
+	return (elementID.split("-"))[1];
+}
+
+function deleteColumnMapping(elementID) {
+	var containerID = "container-" + this.getSelectedContainerNumber(elementID);
+	$j("#"+containerID).remove();
+}
+
+function fetchTables() {
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchTables');
+	ga.getXML(formOptionsForTables);
+}
+
+function formOptionsForTables(response) {
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	var tables = "";
+	answer.map(function(table){
+		if(table.label) {
+			tables += "<option value = \""+table.name+"\">"+table.label+"</option>";
+		}
+	});
+	$j("#parent_table").append(tables);
+	$j("#related_table").append(tables);
+}
+
+function fetchTheColumnsForParentTable() {
+	parentTable = document.getElementById('parent_table').value;
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchTheColumnsForTable');
+	ga.addParam('table_name' , parentTable);
+	ga.getXML(fetchTheColumnsForRelatedTable);
+}
+
+function fetchTheColumnsForRelatedTable(response) {
+	relatedTable = document.getElementById('related_table').value;
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	columnsOfParentTable = answer;
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchTheColumnsForTable');
+	ga.addParam('table_name' , relatedTable);
+	ga.getXML(formTheOptionsForTables);
+}
+
+function formTheOptionsForTables(response) {
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	columnsOfRelatedTable = answer, parentTableColumnsOptions="", relatedTableColumnsOptions="";
+	columnsOfParentTable.map(function(table_column){
+		if(table_column.label) {
+			parentTableColumnsOptions += "<option value = \""+table_column.name+"\">"+table_column.label+"</option>";
+		}
+	});
+	columnsOfRelatedTable.map(function(table_column){
+		if(table_column.label) {
+			relatedTableColumnsOptions += "<option value = \""+table_column.name+"\">"+table_column.label+"</option>";
+		}
+	});
+	generateBodyForColumnsMapping();
+	document.getElementById('element_generateRelationship').style.display = 'block';
+}
+
+function generateBodyForColumnsMapping() {
+	var container = "<div class=\"col-md-12\" id=\"container-"+containerCounter+"\" style=\"margin:10px 0px;\">\
+						<div class=\"col-md-3\"></div>\
+						<div class=\"col-md-2\">\
+							<select class=\"form-control select2\" name=\"parent_table_columns-"+containerCounter+"\" id=\"parent_table_columns-"+containerCounter+"\" required=\"required\">\
+								<option value=\"\">Select Parent Column</option>"+parentTableColumnsOptions+"\
+						</select>\
+						</div>\
+						<div class=\"col-md-2\">\
+							<select class=\"form-control select2\" name=\"related_table_columns-"+containerCounter+"\" id=\"related_table_columns-"+containerCounter+"\" required=\"required\">\
+								<option value=\"\">Select Correlation Column</option>"+relatedTableColumnsOptions+"\
+						</select>\
+						</div>\
+						<div class=\"col-xs-1 col-md-1 col-lg-1 form-field input_controls\" id=\"element_AND-"+containerCounter+"\" name=\"element_AND-"+containerCounter+"\" style=\"text-align:right\">\
+							<button class=\"btn btn-default filerTableAction\" style=\"padding:6px 25px;\" type=\"button\" id=\"AND-"+containerCounter+"\" name=\"AND-"+containerCounter+"\" onClick=\"generateBodyForColumnsMapping()\" title=\"Add column mapping\">\
+								<b>AND</b>\
+							</button>\
+						</div>\
+						<div class=\"col-xs-1 col-md-1 col-lg-1 form-field input_controls\" id=\"element_DELETE-"+containerCounter+"\" name=\"element_DELETE-"+containerCounter+"\">\
+							<button class=\"filerTableAction btn btn-default deleteButton\" style=\"padding:6px 20px;\" type=\"button\" id=\"DELETE-"+containerCounter+"\" name=\"DELETE-"+containerCounter+"\" onClick=\"deleteColumnMapping(this.id)\" title=\"Delete\">\
+								<b>X</b>\
+							</button>\
+						</div>\
+						<div class=\"col-md-3\"></div>\
+					</div>";
+	containerCounter++;
+	$j("#element_container").append(container);	
+}
+
+function generateRelationship() {
+	for(var i = 0; i < containerCounter; i++) {
+		if(document.getElementById("container-"+i)) {
+				parentToRelatedColumnsMapArray.push({
+				parentColumn: document.getElementById('parent_table_columns-'+i).value,
+				correlationColumn: document.getElementById('related_table_columns-'+i).value,
+			});
+		}
+	}
+	document.getElementById('parentToRelatedColumnsMapArray').value = JSON.stringify(parentToRelatedColumnsMapArray);
+	parentToRelatedColumnsMapArray = [];
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>sn_rt_csm_usecase_Generate Relationship.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+	<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+		<g:ui_form>
+			<center>
+				<h1>
+					<b>
+						Custom Relationship
+					</b>
+				</h1>
+			</center>
+			<br/>
+			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope">
+				<div class="col-md-3"></div>
+				<div class="col-md-2" id="element_parent_table">
+					<select class="form-control select2" name="parent_table" id="parent_table">
+						<option>Select Parent Table</option>
+					</select>
+				</div>
+				<div class="col-md-2" id="element_related_table">
+					<select class="form-control select2" name="related_table" id="related_table">
+						<option>Select Related Table</option>
+					</select>
+				</div>
+				<div class="col-md-2" id="element_submit">
+					<button type="button" id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" onClick="fetchTheColumnsForParentTable()"> ${gs.getMessage('Submit')}
+					</button>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+			<br/>
+			<div id="element_container" class="col-xs-12 form-group">
+			</div>
+			<br/>
+			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope" id="element_generateRelationship" style="display:none;" >
+				<div class="col-md-3"></div>
+				<div style="text-align:right;" class="col-md-6">
+					<div class="col-md-2"><span class="label-text">Relationship Name</span></div>
+					<div class="col-md-3"><input type="text" id="relationshipName" name="relationshipName" data-type="string" class="form-control" required="required"/></div>
+					<div class="col-md-1" style="text-align:center">
+						<button id="generateRelationshipBtn" class="btn btn-default btn-primary" type="submit" onClick="generateRelationship()"> ${gs.getMessage('Generate Relationship')}
+						</button>
+					</div>
+				</div>
+				<div class="col-md-3">
+				</div>
+			</div>
+			<textarea id="parentToRelatedColumnsMapArray" name="parentToRelatedColumnsMapArray" style="display:none;"></textarea>
+		</g:ui_form>
+	</j:jelly>]]></html>
+        <name>Generate Relationship</name>
+        <processing_script><![CDATA[var parentTableName = request.getParameter("parent_table");
+var relatedTableName = request.getParameter("related_table");
+var relationshipName = request.getParameter("relationshipName");
+var parentToRelatedColumnsMapArray = request.getParameter("parentToRelatedColumnsMapArray");
+var scriptResponse = new sn_rt_csm_usecase.CSMUseCaseUtils().generateRelationship(parentTableName, relatedTableName, relationshipName, parentToRelatedColumnsMapArray);
+if(scriptResponse === "Success") {
+	var redirectUrl = "/sys_relationship_list.do";
+	response.sendRedirect(redirectUrl);
+} else {
+	gs.info('Something went wrong!');
+}]]></processing_script>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-02-13 06:45:47</sys_created_on>
+        <sys_id>161d3ac777210110266f78adaf5a997d</sys_id>
+        <sys_mod_count>1</sys_mod_count>
+        <sys_name>Generate Relationship</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_ui_page_161d3ac777210110266f78adaf5a997d</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-02-13 06:56:37</sys_updated_on>
+    </sys_ui_page>
+</record_update>

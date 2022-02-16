@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[var remoteTableName, columnsOfRemoteTable, remoteTableSelected, actionSelected, columnsArray = [], outputsArray = [], counter = 0;
+window.onload = function(){
+	fetchRemoteTables();
+	fetchActions();
+};
+
+function fetchActions() {
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchActions');
+	ga.getXML(formInputsForActions);
+}
+
+function formInputsForActions(response) {
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	var actions = "";
+	answer.map(function(action){
+		if(action.label) {
+			actions += "<option value = \""+action.sys_id+" , "+action.name+"\">"+action.label+"</option>";
+		}
+	});
+	$j("#actions").append(actions);
+
+}
+
+function fetchRemoteTables() {
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchRemoteTables');
+	ga.getXML(formInputsForRemoteTables);
+}
+
+function formInputsForRemoteTables(response) {
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	var remoteTables = "";
+	answer.map(function(remote_table){
+		if(remote_table.label) {
+			remoteTables += "<option value = \""+remote_table.name+"\">"+remote_table.label+"</option>";
+		}
+	});
+	$j("#tables").append(remoteTables);
+}
+
+function fetchTheColumnsForRemoteTable() {
+	remoteTableName = remoteTableSelected;
+	document.getElementById('remote_table_name').value = remoteTableName;
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchTheColumnsForTable');
+	ga.addParam('table_name' , remoteTableName);
+	ga.getXML(formInputsForColumns);
+}
+
+function formInputsForColumns(response) {
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	columnsOfRemoteTable = answer;
+	var actionSysID = (actionSelected.split(" , "))[0];
+	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+	ga.addParam('sysparm_name', 'fetchOutputsForAction');
+	ga.addParam('actionSysID' , actionSysID);
+	ga.getXML(formInputsForActionOutputs);
+}
+
+function formInputsForActionOutputs(response) {
+	alert("ok");
+	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+	var actionOutputs = answer;
+	var actionOutputsList = "", actionOutputsToMap = "", counter = 0;
+	actionOutputsToMap += "<option value=\"\">Select the action output to map</option>";
+	actionOutputs.map(function(action_output){
+		if(action_output.label) {
+			actionOutputsToMap += "<option value = \""+action_output.name+"\">"+action_output.label+"</option>";
+		}
+	});
+	columnsOfRemoteTable.map(function(column,index){
+		if(column.label) {
+			columnsArray[counter] = column.name;
+			actionOutputsList += "<div><div style=\"text-align:right\" class=\"col-xs-3\">"+column.label+"</div><div class=\"col-xs-6\"><select id=\""+counter+"\" class=\"form-control select2\" onChange=\"actionOutputSelected(this, this.id)\">"+actionOutputsToMap+"</select></div></div><br/><br/>";
+			counter++;
+		}
+	});
+	document.getElementById("columns_to_map").value = columnsArray;
+	document.getElementById("element_columns").innerHTML = actionOutputsList;
+	document.getElementById('element_generateDefinition').style.display = 'block';
+}
+
+function selectRemoteTable(element) {
+	remoteTableSelected = element.value;
+}
+
+function actionOutputSelected(element, elementID) {
+	counter++;
+	outputsArray[elementID] = element.value;
+	document.getElementById("action_outputs_to_map").value = outputsArray;
+}
+
+function selectAction(element) {
+	actionSelected = element.value;
+}
+
+function generateRemoteDefinition(event) {
+	
+}
+
+function validateMyForm(event) {
+	if(counter === 0) {
+		alert("Select atleast one action output to map");
+		return false;
+	} else {
+		return true;
+	}
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>sn_rt_csm_usecase_Generate Remote Definition.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+	<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+		<g:ui_form onSubmit="event.returnValue=validateMyForm();">
+			<center>
+				<h1 onClick="fetchTheColumnsForRemoteTable()"><b>
+				Remote Table Field Mapping
+				</b></h1> </center>
+			<br/>
+			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope">
+				<div class="col-md-3"></div>
+				<div class="col-md-2" id="element_remote_tables">
+					<select class="form-control select2" name="tables" id="tables" onChange="selectRemoteTable(this)">
+						<option>Select Remote Table</option>
+					</select>
+				</div>
+				<div class="col-md-2" id="element_actions">
+					<select class="form-control select2" name="actions" id="actions" onChange="selectAction(this)">
+						<option>Select Action Name</option>
+					</select>
+				</div>
+				<div class="col-md-2" id="element_filter_submit">
+					<button type="button" id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" onClick="fetchTheColumnsForRemoteTable()"> ${gs.getMessage('Submit')}
+					</button>
+				</div>
+				<div class="col-md-3"></div>
+			</div>
+			<br/>
+			<div class="col-xs-12 form-group">
+				<div class="col-md-2"></div>
+				<div class="col-md-8" id="element_columns" style="text-align:center"> </div>
+				<div class="col-md-2"></div>
+			</div>
+			<br/>
+			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope" id="element_generateDefinition" style="display:none;" >
+				<div class="col-md-3"></div>
+				<div style="text-align:right;" class="col-md-6">
+					<div class="col-md-2"><span class="label-text">Definition Name</span></div>
+					<div class="col-md-3"><input type="text" id="remoteTableDefinitionName" name="remoteTableDefinitionName" data-type="string" class="form-control" required="required"/></div>
+					<div class="col-md-1" style="text-align:center">
+						<button id="generateDefinition" class="btn btn-default btn-primary" type="submit" onClick="generateRemoteDefinition(this)"> ${gs.getMessage('Generate Definition')}
+					</button>
+					</div>
+				</div>
+				<div class="col-md-3">
+				</div>
+			</div>
+			<input type="hidden" id="remote_table_name" name="remote_table_name" data-type="string" class="form-control element_reference_input" />
+			<input type="hidden" id="columns_to_map" name="columns_to_map" data-type="string" class="form-control element_reference_input" />
+			<input type="hidden" id="action_outputs_to_map" name="action_outputs_to_map" data-type="string" class="form-control element_reference_input" />
+		</g:ui_form>
+	</j:jelly>]]></html>
+        <name>Generate Remote Definition</name>
+        <processing_script><![CDATA[var actionName = ((request.getParameter("actions")).split(" , "))[1];
+var remoteTableName = request.getParameter("tables");
+var remoteTableDefinitionName = request.getParameter("remoteTableDefinitionName");
+var columnsToMap = (JSON.stringify(request.getParameter("columns_to_map"))).replaceAll("\"","");
+var actionOutputsToMap = JSON.stringify(request.getParameter("action_outputs_to_map")).replaceAll("\"","");
+var scriptResponse = new sn_rt_csm_usecase.CSMUseCaseUtils().generateRemoteTableDefinition(actionName, remoteTableName, remoteTableDefinitionName, columnsToMap, actionOutputsToMap);
+if(scriptResponse === "Success") {
+	var redirectUrl = "/sys_script_vtable_list.do";
+	response.sendRedirect(redirectUrl);
+} else {
+	gs.info('Something went wrong!');
+}]]></processing_script>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-02-09 08:04:25</sys_created_on>
+        <sys_id>7bb866b177210110266f78adaf5a997b</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>Generate Remote Definition</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_ui_page_7bb866b177210110266f78adaf5a997b</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-02-10 06:42:42</sys_updated_on>
+    </sys_ui_page>
+</record_update>
