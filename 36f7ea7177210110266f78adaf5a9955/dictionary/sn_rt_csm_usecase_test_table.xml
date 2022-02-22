@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><database>
+    <element label="Test Table" max_length="40" name="sn_rt_csm_usecase_test_table" type="collection">
+        <element label="column1" max_length="40" name="column1" type="string"/>
+        <element label="column2" max_length="32" name="column2" reference="sys_user" type="reference"/>
+        <element choice="1" label="column3" max_length="40" name="column3" type="choice">
+            <choice/>
+        </element>
+        <element label="column4" max_length="40" name="column4" type="boolean"/>
+        <index name="index">
+            <element name="column2"/>
+        </index>
+    </element>
+</database>
