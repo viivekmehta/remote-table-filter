@@ -38,7 +38,7 @@
         <name>sn_rt_csm_usecase_test_table</name>
         <next_element/>
         <primary>false</primary>
-        <read_only>false</read_only>
+        <read_only>true</read_only>
         <read_roles/>
         <reference/>
         <reference_cascade_rule/>
@@ -54,14 +54,14 @@
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2022-02-22 12:14:30</sys_created_on>
         <sys_id>cf8eda821bf94510988dc8851a4bcb3c</sys_id>
-        <sys_mod_count>1</sys_mod_count>
+        <sys_mod_count>2</sys_mod_count>
         <sys_name>Column3</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
         <sys_update_name>sys_dictionary_sn_rt_csm_usecase_test_table_column3</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-22 12:31:47</sys_updated_on>
+        <sys_updated_on>2022-02-22 12:44:56</sys_updated_on>
         <table_reference>false</table_reference>
         <text_index>false</text_index>
         <unique>false</unique>
