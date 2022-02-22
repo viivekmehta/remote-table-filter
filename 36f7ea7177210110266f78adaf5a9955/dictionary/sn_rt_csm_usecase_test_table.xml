@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?><database>
     <element label="Test Table" max_length="40" name="sn_rt_csm_usecase_test_table" type="collection">
-        <element label="column1" max_length="40" name="column1" type="string"/>
-        <element label="column2" max_length="32" name="column2" reference="sys_user" type="reference"/>
-        <element choice="1" label="column3" max_length="40" name="column3" type="choice">
+        <element label="Column1" mandatory="true" max_length="40" name="column1" read_only="true" type="string"/>
+        <element label="Column2" max_length="32" name="column2" read_only="true" reference="sys_user" type="reference"/>
+        <element choice="1" label="Column3" mandatory="true" max_length="40" name="column3" type="choice">
             <choice/>
         </element>
-        <element label="column4" max_length="40" name="column4" type="boolean"/>
+        <element label="Column4" max_length="40" name="column4" read_only="true" type="boolean"/>
         <index name="index">
             <element name="column2"/>
         </index>
