@@ -1,0 +1,558 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ui_page">
+    <sys_ui_page action="INSERT_OR_UPDATE">
+        <category>general</category>
+        <client_script><![CDATA[var remoteTableName, actionInputs, remoteTableSelected, actionSelected, additionalFilterElementCounter = 1,
+    element_columnsToFilter, tableColumnFiltersArray = [],
+    actionInputFiltersArray = [];
+window.onload = function() {
+    fetchRemoteTables();
+    fetchActions();
+};
+
+function fetchActions() {
+    var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+    ga.addParam('sysparm_name', 'fetchActions');
+    ga.getXML(formInputsForActions);
+}
+
+function formInputsForActions(response) {
+    var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+    var actions = "";
+    answer.map(function(action) {
+        if (action.label) {
+            actions += "<option value = \"" + action.sys_id + " , " + action.name + "\">" + action.label + "</option>";
+        }
+    });
+    $j("#actions").append(actions);
+}
+
+function fetchRemoteTables() {
+    var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+    ga.addParam('sysparm_name', 'fetchRemoteTables');
+    ga.getXML(formInputsForRemoteTables);
+}
+
+function formInputsForRemoteTables(response) {
+    var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+    var remoteTables = "";
+    answer.map(function(remote_table) {
+        if (remote_table.label) {
+            remoteTables += "<option value = \"" + remote_table.name + "\">" + remote_table.label + "</option>";
+        }
+    });
+    $j("#remote_tables").append(remoteTables);
+}
+
+function getSelectedFilterContainerNumber(elementID) {
+    return (elementID.split("-"))[1];
+}
+
+function fetchActionInputs() {
+	document.getElementById('pageContainer').style.opacity = '0.5';
+	document.getElementById('pageContainer')['style']['pointer-events'] = 'none';
+    var actionSysID = (actionSelected.split(","))[0];
+    var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+    ga.addParam('sysparm_name', 'fetchActionInputs');
+    ga.addParam('actionSysID', actionSysID);
+    ga.getXML(fetchTheColumnsForRemoteTable);
+}
+
+function fetchTheColumnsForRemoteTable(response) {
+    var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+    actionInputs = answer;
+
+    //remoteTableName = url['remote_table'];
+    document.getElementById('remote_table_name').value = remoteTableSelected;
+    var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+    ga.addParam('sysparm_name', 'fetchTheColumnsForRemoteTable');
+    ga.addParam('remote_table_name', remoteTableSelected);
+    ga.getXML(formInputsForColumns);
+}
+
+function formInputsForColumns(response) {
+    var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
+    var columnsToFilterSelectBox = "<select class=\"form-control select2\" name=\"columnsToFilter-0\" id=\"columnsToFilter-0\" onChange=\"selectColumnToFilter(this)\" required>";
+    var columnsToFilterOptions = "<option value=\"\">Select column to filter</option>";
+    actionInputs.map(function(actionInput) {
+        if (actionInput.label) {
+            columnsToFilterOptions += "<option value=\"" + actionInput.name + " , " + actionInput.type + " , action_input , []\">" + actionInput.label + " (Action Input)</option>";
+        }
+    });
+    answer.map(function(column) {
+        if (column.label) {
+            columnsToFilterOptions += "<option value=\"" + column.name + " , " + column.type + " , column , " + (column.choices).replaceAll("\"", "'") + "\">" + column.label + "</option>";
+        }
+    });
+    columnsToFilterSelectBox += columnsToFilterOptions + "</select>";
+    element_columnsToFilter = columnsToFilterOptions;
+    document.getElementById("element_columnsToFilter-0").innerHTML = columnsToFilterSelectBox;
+    document.getElementById("element-submit").style.display = 'block';
+    document.getElementById("container-0").style.display = 'block';
+	document.getElementById('pageContainer').style.opacity = '1';
+	document.getElementById('pageContainer')['style']['pointer-events'] = 'auto';
+}
+
+function selectColumnToFilter(element) {
+    var selectedFilterContainerNumber = this.getSelectedFilterContainerNumber(element.id);
+    var choices = [],
+        options = "",
+        choiceOptions = "";
+    var selectedColumnToFilter = ((element.value).split(" , "))[0];
+    var selectedColumnToFilterType = ((element.value).split(" , "))[1];
+    choices = ((element.value).split(" , "))[3];
+    choices = JSON.parse(choices.replaceAll("'", "\""));
+    if (choices.length > 0) {
+        selectedColumnToFilterType = "choice";
+    }
+    if (selectedColumnToFilterType === "datetime" || selectedColumnToFilterType === "calendar_date_time" || selectedColumnToFilterType === "glide_date" || selectedColumnToFilterType === "glide_date_time") {
+        options = "\
+					<select class=\"form-control select2\" name=\"filterOperator-" + selectedFilterContainerNumber + "\" id=\"filterOperator-" + selectedFilterContainerNumber + "\" onChange=\"selectFilterTypeForDateTime(this)\">\
+						<option value=\"on\">on</option>\
+						<option value=\"before\">before</option>\
+						<option value=\"after\">after</option>\
+						<option value=\"between\">between</option>\
+					</select>\
+				";
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).innerHTML = options;
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_filterValue_string-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_choice-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_number-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'block';
+    } else if (selectedColumnToFilterType === "string") {
+        options = "\
+					<select class=\"form-control select2\" name=\"filterOperator-" + selectedFilterContainerNumber + "\" id=\"filterOperator-" + selectedFilterContainerNumber + "\">\
+						<option value=\"is\">is</option>\
+						<option value=\"is not\">is not</option>\
+						<option value=\"contains\">contains</option>\
+						<option value=\"starts with\">starts with</option>\
+					</select>\
+				";
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).innerHTML = options;
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_filterValue_choice-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_number-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_string-' + selectedFilterContainerNumber).style.display = 'block';
+    } else if (selectedColumnToFilterType === "choice") {
+        options = "\
+					<select class=\"form-control select2\" name=\"filterOperator-" + selectedFilterContainerNumber + "\" id=\"filterOperator-" + selectedFilterContainerNumber + "\">\
+						<option value=\"is\">is</option>\
+					</select>\
+				";
+
+        choiceOptions = "<select class=\"form-control select2\" name=\"choiceValue-" + selectedFilterContainerNumber + "\" id=\"choiceValue-" + selectedFilterContainerNumber + "\">";
+
+        choices.map(function(choice) {
+            choiceOptions += "<option value=\"" + choice.name + "\">" + choice.label + "</option>";
+        });
+
+        choiceOptions += "</select>";
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).innerHTML = options;
+        document.getElementById('element_filterValue_choice-' + selectedFilterContainerNumber).innerHTML = choiceOptions;
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_string-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_number-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_choice-' + selectedFilterContainerNumber).style.display = 'block';
+    } else if (selectedColumnToFilterType === "integer") {
+        options = "\
+					<select class=\"form-control select2\" name=\"filterOperator-" + selectedFilterContainerNumber + "\" id=\"filterOperator-" + selectedFilterContainerNumber + "\">\
+						<option value=\"is\">is</option>\
+						<option value=\"is not\">is not</option>\
+						<option value=\"greater than\">greater than</option>\
+						<option value=\"less than\">less than</option>\
+					</select>\
+				";
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).innerHTML = options;
+        document.getElementById('element_filterOperator-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_filterValue_choice-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_string-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_number-' + selectedFilterContainerNumber).style.display = 'block';
+    } else {
+        alert("This datatype not handeled => " + element.value);
+    }
+    document.getElementById('selectedColumnToFilterType').value = selectedColumnToFilterType;
+}
+
+function selectFilterTypeForString(element) {
+
+}
+
+function selectFilterTypeForDateTime(element) {
+    var selectedFilterContainerNumber = this.getSelectedFilterContainerNumber(element.id);
+    if (element.value === "between") {
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'block';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'block';
+    } else {
+        document.getElementById('element_filterValue_fromDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_date_between_label-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_toDate-' + selectedFilterContainerNumber).style.display = 'none';
+        document.getElementById('element_filterValue_date-' + selectedFilterContainerNumber).style.display = 'block';
+    }
+}
+
+function addFilterCondition() {
+    var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
+    ga.addParam('sysparm_name', 'addFilterCondition');
+    ga.addParam('additionalFilterElementID', additionalFilterElementCounter);
+    ga.getXML(addContainerForAdditionalFilters);
+}
+
+function addContainerForAdditionalFilters(response) {
+    var answer = response.responseXML.documentElement.getAttribute("answer");
+    var columnsToFilterSelectBox = "<select class=\"form-control select2\" name=\"columnsToFilter-" + additionalFilterElementCounter + "\" id=\"columnsToFilter-" + additionalFilterElementCounter + "\" onChange=\"selectColumnToFilter(this)\" required>";
+    var columnsToFilterOptions = element_columnsToFilter;
+    columnsToFilterSelectBox += columnsToFilterOptions + "</select>";
+    $j("#containerForAdditionalFilters").append(answer);
+    document.getElementById("element_columnsToFilter-" + additionalFilterElementCounter).innerHTML = columnsToFilterSelectBox;
+    additionalFilterElementCounter++;
+}
+
+function deleteFilterCondition(elementID) {
+    var containerID = "container-" + this.getSelectedFilterContainerNumber(elementID);
+    $j("#" + containerID).remove();
+}
+
+function formFiltersArray() {
+    var filterOperator = "",
+        filterElement = "",
+        filterValue = "",
+        filterType = "",
+        choices = [],
+        isFilterForActionInput = false,
+        filterObject = {};
+    for (var i = 0; i < additionalFilterElementCounter; i++) {
+        filterObject = {};
+        isFilterForActionInput = false;
+        if (document.getElementById("container-" + i)) {
+            if (((document.getElementById('columnsToFilter-' + i).value).split(" , "))[2] === "action_input") {
+                isFilterForActionInput = true;
+				filterObject = {
+					'action_input': ((document.getElementById('columnsToFilter-' + i).value).split(" , "))[0],
+					'action_input_value': document.getElementById('filterValue_string-' + i).value
+				};
+            } else {
+                filterElement = ((document.getElementById('columnsToFilter-' + i).value).split(" , "))[0];
+                filterType = ((document.getElementById('columnsToFilter-' + i).value).split(" , "))[1];
+                filterOperator = document.getElementById('filterOperator-' + i).value;
+                choices = ((document.getElementById('columnsToFilter-' + i).value).split(" , "))[3];
+                choices = JSON.parse(choices.replaceAll("'", "\""));
+                if (choices.length > 0) {
+                    filterType = "choice";
+                }
+                if (filterType === "datetime" || filterType === "calendar_date_time" || filterType === "glide_date" || filterType === "glide_date_time") {
+                    if (filterOperator === "between") {
+                        filterObject = {
+                            "filterElement": filterElement,
+                            "filterType": "date_range",
+                            "filterOperator": filterOperator,
+                            "fromDate": document.getElementById('filterValue_fromDate-' + i).value,
+                            "toDate": document.getElementById('filterValue_toDate-' + i).value
+                        };
+                    } else {
+                        filterObject = {
+                            "filterElement": filterElement,
+                            "filterType": "date",
+                            "filterOperator": filterOperator,
+                            "filterValue": document.getElementById('filterValue_date-' + i).value
+                        };
+                    }
+                } else if (filterType === "string") {
+                    filterObject = {
+                        "filterElement": filterElement,
+                        "filterType": "string",
+                        "filterOperator": filterOperator,
+                        "filterValue": document.getElementById('filterValue_string-' + i).value
+                    };
+                } else if (filterType === "integer") {
+                    filterObject = {
+                        "filterElement": filterElement,
+                        "filterType": "integer",
+                        "filterOperator": filterOperator,
+                        "filterValue": document.getElementById('filterValue_number-' + i).value
+                    };
+                } else if (filterType === "choice") {
+                    filterObject = {
+                        "filterElement": filterElement,
+                        "filterType": "choice",
+                        "filterOperator": filterOperator,
+                        "filterValue": document.getElementById('choiceValue-' + i).value
+                    };
+                }
+            }
+        }
+        if (isFilterForActionInput) {
+            actionInputFiltersArray.push(filterObject);
+        } else {
+            tableColumnFiltersArray.push(filterObject);
+        }
+    }
+    document.getElementById('tableColumnFiltersArray').value = JSON.stringify(tableColumnFiltersArray);
+    document.getElementById('actionInputFiltersArray').value = JSON.stringify(actionInputFiltersArray);
+}
+
+function selectRemoteTable(element) {
+    remoteTableSelected = element.value;
+}
+
+function selectAction(element) {
+    actionSelected = element.value;
+}]]></client_script>
+        <description/>
+        <direct>false</direct>
+        <endpoint>sn_rt_csm_usecase_Remote Table Filter.do</endpoint>
+        <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
+<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
+	<g:ui_form>
+		<div id="pageContainer">
+			<center>
+				<h1><b>
+					Remote Table Filters
+				</b></h1>
+			</center>
+			<br/>  
+			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope">
+					<div class="col-md-3"></div>
+					<div class="col-md-3" id="element_remote_tables">
+						<select class="form-control select2" name="remote_tables" id="remote_tables" onChange="selectRemoteTable(this)">
+							<option>Select Remote Table</option>
+						</select>
+					</div>
+					<div class="col-md-3" id="element_actions">
+						<select class="form-control select2" name="actions" id="actions" onChange="selectAction(this)">
+							<option>Select Action Name</option>
+						</select>
+					</div>
+					<div class="col-md-2" id="element_filter_submit">
+						<button type="button" id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" onClick="fetchActionInputs()"> ${gs.getMessage('Submit')}
+						</button>
+					</div>
+					<div class="col-md-2"></div>
+			</div>
+			<div id="container-0" class="col-xs-12 form-group" style="display:none">
+				<div class="col-xs-1 col-md-1 col-lg-1 form-field input_controls">
+				</div>
+				<div class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" id="element_columnsToFilter-0" name="element_columnsToFilter-0">
+				</div>
+				<div class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" name="element_filterOperator-0" id="element_filterOperator-0" style="display:none">
+				</div>
+				<div id="element_filterValue_string-0" name="element_filterValue_string-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+					<input type="text" id="filterValue_string-0" name="filterValue_string-0" data-type="string" class="form-control element_reference_input" />
+				</div>
+				<div id="element_filterValue_number-0" name="element_filterValue_number-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+					<input type="number" id="filterValue_number-0" name="filterValue_number-0" data-type="number" class="form-control element_reference_input" />
+				</div>
+				<div id="element_filterValue_choice-0" name="element_filterValue_choice-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+				</div>
+				<div id="element_filterValue_date-0" name="element_filterValue_date-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+					<div class="element date-calendar">
+						<span class="input-group">
+							<input type="text" id="filterValue_date-0" name="filterValue_date-0" data-type="glide_element_date" class="form-control element_reference_input" />
+							<span class="input-group-btn">
+								<!-- user / system date format -->
+								<a class="btn btn-default btn-ref" data-type="element_date" aria-label="${gs.getMessage('Select date')}" onclick="new GwtDateTimePicker('filterValue_date-0', 'yyyy-MM-dd', false);">
+									<span class="icon icon-calendar" aria-hidden="true"></span>
+									<span class="sr-only">${gs.getMessage('Select date')}</span>
+								</a>
+							</span>
+						</span>
+					</div>
+				</div>
+				<div id="element_filterValue_fromDate-0" name="element_filterValue_fromDate-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+					<div class="element date-calendar">
+						<span class="input-group">
+							<input type="text" id="filterValue_fromDate-0" name="filterValue_fromDate-0" data-type="glide_element_date" class="form-control element_reference_input" />
+							<span class="input-group-btn">
+								<!-- user / system date format -->
+								<a class="btn btn-default btn-ref" data-type="element_date" aria-label="${gs.getMessage('Select date')}" onclick="new GwtDateTimePicker('filterValue_fromDate', 'yyyy-MM-dd', false);">
+									<span class="icon icon-calendar" aria-hidden="true"></span>
+									<span class="sr-only">${gs.getMessage('Select date')}</span>
+								</a>
+							</span>
+						</span>
+					</div>
+				</div>
+				<div id="element_date_between_label-0" style="text-align:center; display:none">
+					<label class="col-xs-1 url">
+						<span class="label-text">${gs.getMessage('and')}</span>
+					</label>
+				</div>
+				<div id="element_filterValue_toDate-0" name="element_filterValue_toDate-0" class="col-xs-2 col-md-2 col-lg-2 form-field input_controls" style="display:none">
+					<div class="element date-calendar">
+						<span class="input-group">
+							<input type="text" id="filterValue_toDate-0" name="filterValue_toDate-0" data-type="glide_element_date" class="form-control element_reference_input" />
+							<span class="input-group-btn">
+								<!-- user / system date format -->
+								<a class="btn btn-default btn-ref" data-type="element_date" aria-label="${gs.getMessage('Select date')}" onclick="new GwtDateTimePicker('filterValue_toDate', 'yyyy-MM-dd', false);">
+									<span class="icon icon-calendar" aria-hidden="true"></span>
+									<span class="sr-only">${gs.getMessage('Select date')}</span>
+								</a>
+							</span>
+						</span>
+					</div>
+				</div>
+				<div class="col-xs-1 col-md-1 col-lg-1 form-field input_controls" id="element_AND-0" name="element_AND-0" style="text-align:right">
+					<button class="btn btn-default filerTableAction" style="padding:6px 25px;" type="button" id="AND-0" name="AND-0" onClick="addFilterCondition()" title="Add AND condition">
+						<b>AND</b>
+					</button>
+				</div>
+				<div class="col-xs-1 col-md-1 col-lg-1 form-field input_controls" id="element_DELETE-0" name="element_DELETE-0">
+					<button class="filerTableAction btn btn-default deleteButton" style="padding:6px 20px;" type="button" id="DELETE-0" name="DELETE-0" onClick="deleteFilterCondition(this.id)" title="Delete">
+						<b>X</b>
+					</button>
+				</div>
+			</div>
+			<div id="containerForAdditionalFilters">
+			</div>
+			<br/>
+			<div class="col-xs-12 form-group" id="element-submit" style="display:none">
+				<div class="col-xs-1 col-md-1 col-lg-1 form-field input_controls">
+				</div>
+				<div class="col-xs-2 col-md-2 col-lg-2 form-field input_controls">
+					<button id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" type="submit" onClick="formFiltersArray()">
+						${gs.getMessage('Submit')}
+					</button>
+				</div>
+			</div>
+			<input type="hidden" id="remote_table_name" name="remote_table_name" data-type="string" class="form-control element_reference_input" />
+			<input type="hidden" id="selectedColumnToFilterType" name="selectedColumnToFilterType" data-type="string" class="form-control element_reference_input" />
+			<textarea id="tableColumnFiltersArray" name="tableColumnFiltersArray" style="display:none;"></textarea>
+			<textarea id="actionInputFiltersArray" name="actionInputFiltersArray" style="display:none;"></textarea>
+		</div>
+	</g:ui_form>
+</j:jelly>]]></html>
+        <name>Remote Table Filter</name>
+        <processing_script><![CDATA[var remoteTableName = request.getParameter("remote_table_name");
+var tableColumnFiltersArray = request.getParameter("tableColumnFiltersArray");
+var actionInputFiltersArray = request.getParameter("actionInputFiltersArray");
+gs.getSession().putClientData('tableColumnFiltersArray', tableColumnFiltersArray);
+gs.getSession().putClientData('actionInputFiltersArray', actionInputFiltersArray);
+gs.getSession().putClientData('isFilterFromSessionStorage', true);
+var redirectUrl = new RemoteTableFiltersServerScript().generateRedirectUri(remoteTableName, tableColumnFiltersArray);
+response.sendRedirect(redirectUrl);
+// var fromDate, toDate, date, filterValue, redirectUrl, isActionInput = false;
+// 
+// var filterOperator = (request.getParameter("filterOperator"));
+// var selectedColumnToFilter = ((request.getParameter("columnsToFilter")).split(" , "))[0];
+// var selectedColumnToFilterType = request.getParameter("selectedColumnToFilterType");
+// gs.info("hey => " + filterOperator);
+//
+// gs.getSession().putClientData('filterOperator', filterOperator);
+// gs.getSession().putClientData('filterElement', selectedColumnToFilter);
+
+// if (((request.getParameter("columnsToFilter")).split(" , "))[2] === "action_input") {
+//     isActionInput = true;
+//     gs.getSession().putClientData('isActionInput', true);
+// } else {
+//     isActionInput = false;
+//     gs.getSession().putClientData('isActionInput', false);
+// }
+
+
+// if (isActionInput) {
+
+//     if (selectedColumnToFilterType === "datetime" || selectedColumnToFilterType === "calendar_date_time" || selectedColumnToFilterType === "glide_date" || selectedColumnToFilterType === "glide_date_time") {
+//         date = ((request.getParameter("filterValue_date")).replace(" ", "T")) + "Z";
+//         gs.getSession().putClientData('filterType', 'date');
+//         gs.getSession().putClientData('filterValue', date);
+//     } else if (selectedColumnToFilterType === "string") {
+//         textFilter = request.getParameter("filterValue_string");
+//         gs.getSession().putClientData('filterType', 'string');
+//         gs.getSession().putClientData('filterValue', textFilter);
+//     }
+//     redirectUrl = remoteTableName + "_list.do?sysparm_query=&sysparm_first_row=1&sysparm_view=";
+
+// } else {
+// 	gs.info("hi column type is ==> "+selectedColumnToFilterType);
+//     if (selectedColumnToFilterType === "datetime" || selectedColumnToFilterType === "calendar_date_time" || selectedColumnToFilterType === "glide_date" || selectedColumnToFilterType === "glide_date_time") {
+//         gs.getSession().putClientData('filterType', 'date');
+//         date = (request.getParameter("filterValue_date")).split(" ");
+//         fromDate = (request.getParameter("filterValue_fromDate")).split(" ");
+//         toDate = (request.getParameter("filterValue_toDate")).split(" ");
+//         if (filterOperator === "between") {
+//             filterOperator = "BETWEEN";
+//             gs.getSession().putClientData('fromDate', fromDate[0] + "T" + fromDate[1] + "Z");
+//             gs.getSession().putClientData('toDate', toDate[0] + "T" + toDate[1] + "Z");
+//             redirectUrl = remoteTableName + "_list.do?sysparm_query=" + selectedColumnToFilter + filterOperator + "javascript:gs.dateGenerate('" + fromDate[0] + "','" + fromDate[1] + "')@javascript:gs.dateGenerate('" + toDate[0] + "','" + toDate[1] + "')&sysparm_first_row=1&sysparm_view=";
+//         } else {
+//             gs.getSession().putClientData('date', date[0] + "T" + date[1] + "Z");
+//             if (filterOperator === "before") {
+//                 filterOperator = "<";
+//             } else if (filterOperator === "after") {
+//                 filterOperator = ">";
+//             } else if (filterOperator === "on") {
+//                 filterOperator = "=";
+//             }
+//             redirectUrl = remoteTableName + "_list.do?sysparm_query=" + selectedColumnToFilter + filterOperator + "javascript:gs.dateGenerate('" + date[0] + "','" + date[1] + "')&sysparm_first_row=1&sysparm_view=";
+//         }
+//     } else if (selectedColumnToFilterType === "string") {
+//         filterValue = request.getParameter("filterValue_string");
+//         gs.getSession().putClientData('filterType', 'string');
+//         gs.getSession().putClientData('filterValue', filterValue);
+//         if (filterOperator === "is") {
+//             filterOperator = "=";
+//         } else if (filterOperator === "is not") {
+//             filterOperator = "!=";
+//         } else if (filterOperator === "contains") {
+//             filterOperator = "LIKE";
+//         } else if (filterOperator === "starts with") {
+//             filterOperator = "STARTSWITH";
+//         }
+//         redirectUrl = remoteTableName + "_list.do?sysparm_query=" + selectedColumnToFilter + filterOperator + filterValue + "&sysparm_first_row=1&sysparm_view=";
+//     } else if (selectedColumnToFilterType === "integer") {
+//         filterValue = request.getParameter("filterValue_number");
+//         gs.getSession().putClientData('filterType', 'integer');
+//         gs.getSession().putClientData('filterValue', filterValue);
+//         if (filterOperator === "is") {
+//             filterOperator = "=";
+//         } else if (filterOperator === "is not") {
+//             filterOperator = "!=";
+//         } else if (filterOperator === "greater than") {
+//             filterOperator = ">";
+//         } else if (filterOperator === "less than") {
+//             filterOperator = "<";
+//         }
+//         redirectUrl = remoteTableName + "_list.do?sysparm_query=" + selectedColumnToFilter + filterOperator + filterValue + "&sysparm_first_row=1&sysparm_view=";
+//     } else if (selectedColumnToFilterType === "choice") {
+//         filterValue = request.getParameter("choiceValue");
+//         gs.getSession().putClientData('filterType', 'choice');
+//         gs.getSession().putClientData('filterValue', filterValue);
+//         if (filterOperator === "is") {
+//             filterOperator = "=";
+//         }
+//         redirectUrl = remoteTableName + "_list.do?sysparm_query=" + selectedColumnToFilter + filterOperator + filterValue + "&sysparm_first_row=1&sysparm_view=";
+//     }
+
+// }
+
+]]></processing_script>
+        <sys_class_name>sys_ui_page</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-02-25 15:59:51</sys_created_on>
+        <sys_id>63edae8377310110266f78adaf5a9995</sys_id>
+        <sys_mod_count>23</sys_mod_count>
+        <sys_name>Remote Table Filter</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_ui_page_63edae8377310110266f78adaf5a9995</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-03-27 14:50:55</sys_updated_on>
+    </sys_ui_page>
+</record_update>

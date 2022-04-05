@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_ws_operation">
+    <sys_ws_operation action="INSERT_OR_UPDATE">
+        <active>true</active>
+        <consumes>application/json,application/xml,text/xml</consumes>
+        <consumes_customized>false</consumes_customized>
+        <default_operation_uri/>
+        <enforce_acl/>
+        <http_method>GET</http_method>
+        <name>Get all Orders for a User</name>
+        <operation_script><![CDATA[(function process( /*RESTAPIRequest*/ request, /*RESTAPIResponse*/ response) {
+
+    var orders = {
+        'orders': [{
+                'user_id': 'manish.kothari',
+                'order_id': '001122'
+            },
+            {
+                'user_id': 'chakradhar.jn',
+                'order_id': '112233'
+            },
+            {
+                'user_id': 'vivek.mehta',
+                'order_id': '223344'
+            },
+            {
+                'user_id': 'shashindhar.jaidi',
+                'order_id': '334455'
+            },
+            {
+                'user_id': 'julia.perlis',
+                'order_id': '445566'
+            }
+        ]
+    };
+
+    if (!gs.nil((request.queryParams['user_id']).toString())) {
+        gs.info("user id is => " + request.queryParams['user_id']);
+        orders = orders.orders.filter(function(itm) {
+            return ((request.queryParams['user_id']).toString()).indexOf(itm.user_id) > -1;
+        });
+		orders = {'orders':orders};
+    }
+
+    response.setBody(orders);
+    response.setStatus(200);
+
+})(request, response);]]></operation_script>
+        <operation_uri>/api/sn_rt_csm_usecase/orders_rt_csm_usecase/orders</operation_uri>
+        <produces>application/json,application/xml,text/xml</produces>
+        <produces_customized>false</produces_customized>
+        <relative_path>/orders</relative_path>
+        <request_example/>
+        <requires_acl_authorization>false</requires_acl_authorization>
+        <requires_authentication>false</requires_authentication>
+        <requires_snc_internal_role>false</requires_snc_internal_role>
+        <short_description/>
+        <sys_class_name>sys_ws_operation</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-03-26 17:50:17</sys_created_on>
+        <sys_id>8cfddce477220110266f78adaf5a99b3</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>Get all Orders for a User</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_ws_operation_8cfddce477220110266f78adaf5a99b3</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-03-27 15:53:48</sys_updated_on>
+        <web_service_definition display_value="Orders-RT CSM UseCase ">4cdd5ce477220110266f78adaf5a995d</web_service_definition>
+        <web_service_version/>
+    </sys_ws_operation>
+</record_update>

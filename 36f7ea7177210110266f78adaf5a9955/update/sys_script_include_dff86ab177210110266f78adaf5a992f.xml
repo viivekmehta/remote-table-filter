@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
     <sys_script_include action="INSERT_OR_UPDATE">
-        <access>package_private</access>
+        <access>public</access>
         <active>true</active>
         <api_name>sn_rt_csm_usecase.CSMUseCaseUtils</api_name>
         <caller_access/>
@@ -10,7 +10,7 @@
         <script><![CDATA[var CSMUseCaseUtils = Class.create();
 CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 
-	fetchActions: function() {
+    fetchActions: function() {
         var actions = [];
         var fields = new GlideRecord('sys_hub_action_type_definition');
         fields.addQuery("action_template", "DATASTREAM");
@@ -19,10 +19,10 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         while (fields.next()) {
             actions.push({
                 name: (fields.sys_scope.scope).toString() + "." + (fields.internal_name).toString(),
-                label: fields.name.toString(),
+                label: (fields.sys_scope.name).toString() + " - " + fields.name.toString(),
                 sys_id: fields.sys_id.toString()
             });
-        }
+        } 
 
         return JSON.stringify(actions);
     },
@@ -76,7 +76,22 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 
         return JSON.stringify(fieldslist);
     },
-
+	
+	fetchActionInputs: function() {
+        try {
+			gs.info("inside");
+            var actionSysID = this.getParameter('actionSysID');
+            var inputs = {};
+            inputs['action_sys_id'] = actionSysID;
+            var result = sn_fd.FlowAPI.getRunner().action('sn_rt_csm_usecase.get_action_details').inForeground().withInputs(inputs).run();
+            var outputs = result.getOutputs();
+            var inputDetails = outputs['action_inputs'];
+            return JSON.stringify(inputDetails);
+        } catch (ex) {
+            var message = ex.getMessage();
+            gs.error(message);
+        }
+    },
 
     fetchOutputsForAction: function() {
         try {
@@ -92,10 +107,31 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
             gs.error(message);
         }
     },
+	
+	fetchTheColumnsForRemoteTable: function() {
+        var fieldslist = [],
+            choices = [];
+        var remoteTableName = this.getParameter('remote_table_name');
+        var fields = new GlideRecord('sys_dictionary');
+        fields.addQuery('name', remoteTableName); // Write the table name for which you need field name list
+        fields.query();
 
-    generateRelationshipScript: function(parentToRelatedColumnsMapArray) {
+        while (fields.next()) {
+            choices = this.fetchChoicesForChoiceTypes(remoteTableName, fields.element.toString());
+            fieldslist.push({
+                name: fields.element.toString(),
+                label: fields.column_label.toString(),
+                type: fields.internal_type.toString(),
+                choices: JSON.stringify(choices)
+            });
+        }
+
+        return JSON.stringify(fieldslist);
+    },
+
+    generateRelationshipScript: function(parentToRelatedColumnsMapArray, parentToRelatedActionInputsMapArray) {
         var relationshipScript = "\
-	var filterElements = [";
+	var filterColumnElements = [";
         gs.info(typeof parentToRelatedColumnsMapArray + " , " + parentToRelatedColumnsMapArray + JSON.stringify(parentToRelatedColumnsMapArray));
         parentToRelatedColumnsMapArray.map(function(column) {
             relationshipScript += "\n\
@@ -107,15 +143,28 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         relationshipScript += "\n\
 	];\n\
 	\
-	session.putClientData(\"filterElements\",JSON.stringify(filterElements));\n\
+	var filterInputElements = [";
+        parentToRelatedActionInputsMapArray.map(function(column) {
+            relationshipScript += "\n\
+		{\n\
+			\"action_input\": \"" + column['correlationColumn'] + "\",\n\
+			\"action_input_value\": (parent." + column['parentColumn'] + ").toString()\n\
+		},";
+        });
+        relationshipScript += "\n\
+	];\n\
+	\
+	session.putClientData(\"tableColumnFiltersArray\",JSON.stringify(filterColumnElements));\n\
+	session.putClientData(\"actionInputFiltersArray\",JSON.stringify(filterInputElements));\n\
 	session.putClientData(\"isFilterFromSessionStorage\",\"true\");";
 
         return relationshipScript;
     },
 
-    generateRelationship: function(parentTableName, relatedTableName, relationshipName, parentToRelatedColumnsMapArray) {
+    generateRelationship: function(parentTableName, relatedTableName, relationshipName, parentToRelatedColumnsMapArray, parentToRelatedActionInputsMapArray) {
         parentToRelatedColumnsMapArray = JSON.parse(parentToRelatedColumnsMapArray);
-        var relationshipScript = this.generateRelationshipScript(parentToRelatedColumnsMapArray);
+		parentToRelatedActionInputsMapArray = JSON.parse(parentToRelatedActionInputsMapArray);
+        var relationshipScript = this.generateRelationshipScript(parentToRelatedColumnsMapArray, parentToRelatedActionInputsMapArray);
         var queryWithScript = "var session = gs.getSession();\n\
 (function refineQuery(current, parent) {\n\
 " + relationshipScript + "\n\
@@ -139,7 +188,7 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
     },
 
     doesRecordSatisfyFilters: function(recordObject, filterElements, column_to_outputs_map) {
-		gs.info("Checking record filters..");
+        gs.info("Checking record filters..");
         var doesRecordSatisfyFilters = true,
             filterElement, filter;
         for (var i = 0; i < filterElements.length; i++) {
@@ -155,21 +204,21 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
 
     generateTableColumnMapping: function(columnsToMap, actionOutputsToMap) {
         var rulesToAdd = ".addRule(\"sys_id\", \"$.sys_id\")\n";
-		var column_to_outputs_map = "{\n";
+        var column_to_outputs_map = "{\n";
         columnsToMap.map(function(column, index) {
             if (index + 1 !== columnsToMap.length) {
                 rulesToAdd += "\t\t\t.addRule(\"" + column + "\", \"$." + actionOutputsToMap[index] + "\")\n";
-				column_to_outputs_map += "\t\t\""+column+"\": \""+actionOutputsToMap[index]+"\",\n";
+                column_to_outputs_map += "\t\t\"" + column + "\": \"" + actionOutputsToMap[index] + "\",\n";
             } else {
                 rulesToAdd += "\t\t\t.addRule(\"" + column + "\", \"$." + actionOutputsToMap[index] + "\");";
-				column_to_outputs_map += "\t\t\""+column+"\": \""+actionOutputsToMap[index]+"\"\n";
+                column_to_outputs_map += "\t\t\"" + column + "\": \"" + actionOutputsToMap[index] + "\"\n";
             }
         });
-		column_to_outputs_map += "\t};";
+        column_to_outputs_map += "\t};";
         return {
-			"rulesToAdd": rulesToAdd,
-			"column_to_outputs_map": column_to_outputs_map
-		};
+            "rulesToAdd": rulesToAdd,
+            "column_to_outputs_map": column_to_outputs_map
+        };
     },
 
     generateRemoteTableDefinition: function(actionName, remoteTableName, remoteTableDefinitionName, columnsToMap, actionOutputsToMap) {
@@ -177,17 +226,37 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
         actionOutputsToMap = actionOutputsToMap.split(",");
         var tableColumnMapping = this.generateTableColumnMapping(columnsToMap, actionOutputsToMap);
         var script = "(function executeQuery(v_table, v_query) {\n\
-	var column_to_outputs_map = "+tableColumnMapping["column_to_outputs_map"]+"\n\
+	var column_to_outputs_map = " + tableColumnMapping["column_to_outputs_map"] + "\n\
     fetchRecords(v_table, v_query);\n\
     function fetchRecords(v_table, v_query) {\n\
 		var session = gs.getSession();\n\
+		var isFilterActionOutput = false;\n\
+		var filterOutputsOfAction;\n\
 		var isFilterFromSessionStorage = session.getClientData('isFilterFromSessionStorage');\n\
-		var filterElements = JSON.parse(session.getClientData('filterElements'));\n\
         var recordKeys = " + JSON.stringify(actionOutputsToMap) + ";\n\
 		var len = recordKeys.length;\n\
         try {\n\
+			var inputs = {};\n\
+            if (isFilterFromSessionStorage == 'true') {\n\
+                try {\n\
+                    var filterInputsOfAction = JSON.parse(session.getClientData('actionInputFiltersArray'));\n\
+                    filterInputsOfAction.map(function(filterInput) {\n\
+                        inputs[filterInput['action_input']] = (filterInput['action_input_value']).toString();\n\
+                    });\n\
+                } catch (e) {\n\
+                    gs.info('invalid json');\n\
+                }\n\
+				try {\n\
+                    filterOutputsOfAction = JSON.parse(session.getClientData('tableColumnFiltersArray'));\n\
+                    if(filterOutputsOfAction.length > 0) {\n\
+						isFilterActionOutput = true;\n\
+					}\n\
+                } catch (e) {\n\
+                    gs.info('invalid json');\n\
+                }\n\
+            }\n\
             // Execute Data Stream Action\"\n\
-            var outputs = sn_fd.FlowAPI.executeDataStreamAction('" + actionName + "');\n\
+            var outputs = sn_fd.FlowAPI.executeDataStreamAction('" + actionName + "',inputs);\n\
 			var CSMUseCaseUtil = new sn_rt_csm_usecase.CSMUseCaseUtils();\n\
             var i = 0;\n\
             // Process each item in the data stream\n\
@@ -195,8 +264,8 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
                 // Get a single item from the data stream\n\
                 var response = outputs.next();\n\
 				var doesRecordSatisfyFilters = true;\n\
-				if(isFilterFromSessionStorage == \"true\") {\n\
-					doesRecordSatisfyFilters = CSMUseCaseUtil.doesRecordSatisfyFilters(response, filterElements, column_to_outputs_map);\n\
+				if(isFilterActionOutput) {\n\
+					doesRecordSatisfyFilters = CSMUseCaseUtil.doesRecordSatisfyFilters(response, filterOutputsOfAction, column_to_outputs_map);\n\
 				}\n\
                 // Use the item\n\
 				if(doesRecordSatisfyFilters) {\n\
@@ -262,20 +331,166 @@ CSMUseCaseUtils.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
             return "Error";
         }
     },
+
+    fetchChoicesForChoiceTypes: function(tableName, column) {
+        var sysChoice = new GlideRecord("sys_choice");
+        sysChoice.addQuery("name", tableName);
+        sysChoice.addQuery("element", column);
+        sysChoice.orderBy("sequence");
+        sysChoice.query();
+        var choices = [];
+        while (sysChoice.next()) {
+            choices.push({
+                "name": sysChoice.value.toString(),
+                "label": sysChoice.label.toString()
+            });
+        }
+        return choices;
+    },
+
+    doesRecordSatisfyFilters1: function(recordObject, filtersArray, column_to_outputs_map) {
+        var doesRecordSatisfyFilters = true,
+            filterElement, filter;
+        for (var i = 0; i < filtersArray.length; i++) {
+            filter = filtersArray[i];
+            filterElement = column_to_outputs_map[filter['filterElement']]; //brings action output name from the column name
+            if (filter['filterType'] === "string") {
+                if (filter['filterOperator'] === "is") {
+                    if (filter['filterValue'] !== recordObject[filterElement]) {
+                        doesRecordSatisfyFilters = false;
+                        break;
+                    }
+                } else if (filter['filterOperator'] === "is not") {
+                    if (filter['filterValue'] === recordObject[filterElement]) {
+                        doesRecordSatisfyFilters = false;
+                        break;
+                    }
+                } else if (filter['filterOperator'] === "contains") {
+                    if ((((recordObject[filterElement]).toLowerCase()).indexOf((filter['filterValue']).toLowerCase())) === -1) {
+                        doesRecordSatisfyFilters = false;
+                        break;
+                    } else {
+                        gs.info("contain was true for value ==> '" + filter['filterValue'] + "'" + " , '" + recordObject[filterElement] + "'");
+                    }
+                } else if (filter['filterOperator'] === "starts with") {
+                    if (!((recordObject[filterElement]).startsWith(filter['filterValue']))) {
+                        doesRecordSatisfyFilters = false;
+                        break;
+                    }
+                }
+            } else if (filter['filterType'] === "date") {
+                // 				if(filter['filterOperator'] === "on") {
+                // 					searchQuery += filterElement + " eq '" + filter['filterValue'] + "'";
+                // 				} else if(filter['filterOperator'] === "before") {
+                // 					searchQuery += filterElement + " lt '" + filter['filterValue'] + "'";
+                // 				} else if(filter['filterOperator'] === "after") {
+                // 					searchQuery += filterElement + " gt '" + filter['filterValue'] + "'";
+                // 				} else if(filter['filterOperator'] === "between") {
+                // 					searchQuery += filterElement + " gt '" + filter['fromDate'] + "' and " + filterElement + " lt '" + filter['toDate'] + "'";
+                // 				}
+            }
+        }
+        return doesRecordSatisfyFilters;
+    },
+
+    addFilterCondition: function() {
+        var additionalFilterElementID = (this.getParameter('additionalFilterElementID')).toString();
+        var containerForAdditionalFilters = "<div class=\"col-xs-12 form-group\" id=\"container-" + additionalFilterElementID + "\">\
+			<div class=\"col-xs-1 col-md-1 col-lg-1 form-field input_controls\">\
+			</div>\
+			<div class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" id=\"element_columnsToFilter-" + additionalFilterElementID + "\" name=\"element_columnsToFilter-" + additionalFilterElementID + "\">\
+			</div>\
+			<div class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" name=\"element_filterOperator-" + additionalFilterElementID + "\" id=\"element_filterOperator-" + additionalFilterElementID + "\" style=\"display:none\">\
+			</div>\
+			<div id=\"element_filterValue_string-" + additionalFilterElementID + "\" name=\"element_filterValue_string-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+				<input type=\"text\" id=\"filterValue_string-" + additionalFilterElementID + "\" name=\"filterValue_string-" + additionalFilterElementID + "\" data-type=\"string\" class=\"form-control element_reference_input\" />\
+			</div>\
+			<div id=\"element_filterValue_number-" + additionalFilterElementID + "\" name=\"element_filterValue_number-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+				<input type=\"number\" id=\"filterValue_number-" + additionalFilterElementID + "\" name=\"filterValue_number-" + additionalFilterElementID + "\" data-type=\"number\" class=\"form-control element_reference_input\" />\
+			</div>\
+			<div id=\"element_filterValue_choice-" + additionalFilterElementID + "\" name=\"element_filterValue_choice-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+			</div>\
+			<div id=\"element_filterValue_date-" + additionalFilterElementID + "\" name=\"element_filterValue_date-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+				<div class=\"element date-calendar\">\
+					<span class=\"input-group\">\
+						<input type=\"text\" id=\"filterValue_date-" + additionalFilterElementID + "\" name=\"filterValue_date-" + additionalFilterElementID + "\" data-type=\"glide_element_date\" class=\"form-control element_reference_input\" />\
+						<span class=\"input-group-btn\">\
+							<!-- user / system date format -->\
+							<a class=\"btn btn-default btn-ref\" data-type=\"element_date\" aria-label=\"${gs.getMessage('Select date')}\" onclick=\"new GwtDateTimePicker('filterValue_date-" + additionalFilterElementID + "', 'yyyy-MM-dd', false);\">\
+								<span class=\"icon icon-calendar\" aria-hidden=\"true\"></span>\
+								<span class=\"sr-only\">${gs.getMessage('Select date')}</span>\
+							</a>\
+						</span>\
+					</span>\
+				</div>\
+			</div>\
+			<div id=\"element_filterValue_fromDate-" + additionalFilterElementID + "\" name=\"element_filterValue_fromDate-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+				<div class=\"element date-calendar\">\
+					<span class=\"input-group\">\
+						<input type=\"text\" id=\"filterValue_fromDate-" + additionalFilterElementID + "\" name=\"filterValue_fromDate-" + additionalFilterElementID + "\" data-type=\"glide_element_date\" class=\"form-control element_reference_input\" />\
+						<span class=\"input-group-btn\">\
+							<!-- user / system date format -->\
+							<a class=\"btn btn-default btn-ref\" data-type=\"element_date\" aria-label=\"${gs.getMessage('Select date')}\" onclick=\"new GwtDateTimePicker('filterValue_fromDate-" + additionalFilterElementID + "', 'yyyy-MM-dd', false);\">\
+								<span class=\"icon icon-calendar\" aria-hidden=\"true\"></span>\
+								<span class=\"sr-only\">${gs.getMessage('Select date')}</span>\
+							</a>\
+						</span>\
+					</span>\
+				</div>\
+			</div>\
+			<div id=\"element_date_between_label-" + additionalFilterElementID + "\" style=\"text-align:center; display:none\">\
+				<label class=\"col-xs-1 url\">\
+					<span class=\"label-text\">and</span>\
+				</label>\
+			</div>\
+			<div id=\"element_filterValue_toDate-" + additionalFilterElementID + "\" name=\"element_filterValue_toDate-" + additionalFilterElementID + "\" class=\"col-xs-2 col-md-2 col-lg-2 form-field input_controls\" style=\"display:none\">\
+				<div class=\"element date-calendar\">\
+					<span class=\"input-group\">\
+						<input type=\"text\" id=\"filterValue_toDate-" + additionalFilterElementID + "\" name=\"filterValue_toDate-" + additionalFilterElementID + "\" data-type=\"glide_element_date\" class=\"form-control element_reference_input\" />\
+						<span class=\"input-group-btn\">\
+							<!-- user / system date format -->\
+							<a class=\"btn btn-default btn-ref\" data-type=\"element_date\" aria-label=\"${gs.getMessage('Select date')}\" onclick=\"new GwtDateTimePicker('filterValue_toDate-" + additionalFilterElementID + "', 'yyyy-MM-dd', false);\">\
+								<span class=\"icon icon-calendar\" aria-hidden=\"true\"></span>\
+								<span class=\"sr-only\">${gs.getMessage('Select date')}</span>\
+							</a>\
+						</span>\
+					</span>\
+				</div>\
+			</div>\
+			<div class=\"col-xs-1 col-md-1 col-lg-1 form-field input_controls\" id=\"element_AND-" + additionalFilterElementID + "\" name=\"element_AND-" + additionalFilterElementID + "\" style=\"text-align:right\">\
+				<button class=\"btn btn-default filerTableAction\" style=\"padding:6px 25px;\" type=\"button\" id=\"AND-" + additionalFilterElementID + "\" name=\"AND-" + additionalFilterElementID + "\" onClick=\"addFilterCondition()\" title=\"Add AND condition\">\
+					<b>AND</b>\
+				</button>\
+			</div>\
+			<div class=\"col-xs-1 col-md-1 col-lg-1 form-field input_controls\" id=\"element_DELETE-" + additionalFilterElementID + "\" name=\"element_DELETE-" + additionalFilterElementID + "\">\
+				<button class=\"filerTableAction btn btn-default deleteButton\" style=\"padding:6px 20px;\" type=\"button\" id=\"DELETE-" + additionalFilterElementID + "\" name=\"DELETE-" + additionalFilterElementID + "\" onClick=\"deleteFilterCondition(this.id)\" title=\"Delete\">\
+					<b>X</b>\
+				</button>\
+			</div>\
+		</div>";
+
+        return containerForAdditionalFilters;
+    },
 	
+	getPassword: function() {
+		var gr = new GlideRecord("sys_user");
+		gr.get("6816f79cc0a8016401c5a33be04be441");
+		return gr.u_password_new;
+	},
+
     type: 'CSMUseCaseUtils'
 });]]></script>
         <sys_class_name>sys_script_include</sys_class_name>
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2022-02-09 08:05:57</sys_created_on>
         <sys_id>dff86ab177210110266f78adaf5a992f</sys_id>
-        <sys_mod_count>12</sys_mod_count>
+        <sys_mod_count>27</sys_mod_count>
         <sys_name>CSMUseCaseUtils</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy>read</sys_policy>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
         <sys_update_name>sys_script_include_dff86ab177210110266f78adaf5a992f</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-13 07:43:30</sys_updated_on>
+        <sys_updated_on>2022-03-26 18:16:05</sys_updated_on>
     </sys_script_include>
 </record_update>

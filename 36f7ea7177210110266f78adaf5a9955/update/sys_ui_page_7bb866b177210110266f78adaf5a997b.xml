@@ -43,6 +43,8 @@ function formInputsForRemoteTables(response) {
 }
 
 function fetchTheColumnsForRemoteTable() {
+	document.getElementById('pageContainer').style.opacity = '0.5';
+	document.getElementById('pageContainer')['style']['pointer-events'] = 'none';
 	remoteTableName = remoteTableSelected;
 	document.getElementById('remote_table_name').value = remoteTableName;
 	var ga = new GlideAjax('sn_rt_csm_usecase.CSMUseCaseUtils');
@@ -62,7 +64,6 @@ function formInputsForColumns(response) {
 }
 
 function formInputsForActionOutputs(response) {
-	alert("ok");
 	var answer = JSON.parse(response.responseXML.documentElement.getAttribute("answer"));
 	var actionOutputs = answer;
 	var actionOutputsList = "", actionOutputsToMap = "", counter = 0;
@@ -82,6 +83,8 @@ function formInputsForActionOutputs(response) {
 	document.getElementById("columns_to_map").value = columnsArray;
 	document.getElementById("element_columns").innerHTML = actionOutputsList;
 	document.getElementById('element_generateDefinition').style.display = 'block';
+	document.getElementById('pageContainer').style.opacity = '1';
+	document.getElementById('pageContainer')['style']['pointer-events'] = 'auto';
 }
 
 function selectRemoteTable(element) {
@@ -116,52 +119,59 @@ function validateMyForm(event) {
         <html><![CDATA[<?xml version="1.0" encoding="utf-8" ?>
 	<j:jelly trim="false" xmlns:j="jelly:core" xmlns:g="glide" xmlns:j2="null" xmlns:g2="null">
 		<g:ui_form onSubmit="event.returnValue=validateMyForm();">
-			<center>
-				<h1 onClick="fetchTheColumnsForRemoteTable()"><b>
-				Remote Table Field Mapping
-				</b></h1> </center>
-			<br/>
-			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope">
-				<div class="col-md-3"></div>
-				<div class="col-md-2" id="element_remote_tables">
-					<select class="form-control select2" name="tables" id="tables" onChange="selectRemoteTable(this)">
-						<option>Select Remote Table</option>
-					</select>
+			<div id="pageContainer">
+				<div class="col-xs-12">
+					<center>
+					<h1 onClick="fetchTheColumnsForRemoteTable()">
+						<b>
+							Remote Table Definition
+						</b>
+					</h1>
+					</center>
 				</div>
-				<div class="col-md-2" id="element_actions">
-					<select class="form-control select2" name="actions" id="actions" onChange="selectAction(this)">
-						<option>Select Action Name</option>
-					</select>
+				<br/><br/>  
+				<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope">
+					<div class="col-md-3"></div>
+					<div class="col-md-3" id="element_remote_tables">
+						<select class="form-control select2" name="tables" id="tables" onChange="selectRemoteTable(this)">
+							<option>Select Remote Table</option>
+						</select>
+					</div>
+					<div class="col-md-3" id="element_actions">
+						<select class="form-control select2" name="actions" id="actions" onChange="selectAction(this)">
+							<option>Select Action Name</option>
+						</select>
+					</div>
+					<div class="col-md-2" id="element_filter_submit">
+						<button type="button" id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" onClick="fetchTheColumnsForRemoteTable()"> ${gs.getMessage('Submit')}
+						</button>
+					</div>
+					<div class="col-md-2"></div>
 				</div>
-				<div class="col-md-2" id="element_filter_submit">
-					<button type="button" id="filter_submit" class="btn btn-default btn-primary" style="padding:6px 25px;" onClick="fetchTheColumnsForRemoteTable()"> ${gs.getMessage('Submit')}
-					</button>
+				<br/>
+				<div class="col-xs-12 form-group">
+					<div class="col-md-2"></div>
+					<div class="col-md-8" id="element_columns" style="text-align:center"> </div>
+					<div class="col-md-2"></div>
 				</div>
-				<div class="col-md-3"></div>
-			</div>
-			<br/>
-			<div class="col-xs-12 form-group">
-				<div class="col-md-2"></div>
-				<div class="col-md-8" id="element_columns" style="text-align:center"> </div>
-				<div class="col-md-2"></div>
-			</div>
-			<br/>
-			<div class="col-xs-12 form-group navbar navbar-default section_zero  ng-scope" id="element_generateDefinition" style="display:none;" >
-				<div class="col-md-3"></div>
-				<div style="text-align:right;" class="col-md-6">
-					<div class="col-md-2"><span class="label-text">Definition Name</span></div>
-					<div class="col-md-3"><input type="text" id="remoteTableDefinitionName" name="remoteTableDefinitionName" data-type="string" class="form-control" required="required"/></div>
-					<div class="col-md-1" style="text-align:center">
-						<button id="generateDefinition" class="btn btn-default btn-primary" type="submit" onClick="generateRemoteDefinition(this)"> ${gs.getMessage('Generate Definition')}
-					</button>
+				<br/>
+				<div class="col-xs-12 form-group navbar navbar-default section_zero ng-scope" id="element_generateDefinition" style="display:none;" >
+					<div class="col-md-4"></div>
+					<div style="text-align:right;" class="col-md-6">
+						<div class="col-md-2"><span class="label-text">Definition Name</span></div>
+						<div class="col-md-3"><input type="text" id="remoteTableDefinitionName" name="remoteTableDefinitionName" data-type="string" class="form-control" required="required"/></div>
+						<div class="col-md-1" style="text-align:center">
+							<button id="generateDefinition" class="btn btn-default btn-primary" type="submit" onClick="generateRemoteDefinition(this)"> ${gs.getMessage('Generate Definition')}
+						</button>
+						</div>
+					</div>
+					<div class="col-md-2">
 					</div>
 				</div>
-				<div class="col-md-3">
-				</div>
+				<input type="hidden" id="remote_table_name" name="remote_table_name" data-type="string" class="form-control element_reference_input" />
+				<input type="hidden" id="columns_to_map" name="columns_to_map" data-type="string" class="form-control element_reference_input" />
+				<input type="hidden" id="action_outputs_to_map" name="action_outputs_to_map" data-type="string" class="form-control element_reference_input" />
 			</div>
-			<input type="hidden" id="remote_table_name" name="remote_table_name" data-type="string" class="form-control element_reference_input" />
-			<input type="hidden" id="columns_to_map" name="columns_to_map" data-type="string" class="form-control element_reference_input" />
-			<input type="hidden" id="action_outputs_to_map" name="action_outputs_to_map" data-type="string" class="form-control element_reference_input" />
 		</g:ui_form>
 	</j:jelly>]]></html>
         <name>Generate Remote Definition</name>
@@ -181,13 +191,13 @@ if(scriptResponse === "Success") {
         <sys_created_by>admin</sys_created_by>
         <sys_created_on>2022-02-09 08:04:25</sys_created_on>
         <sys_id>7bb866b177210110266f78adaf5a997b</sys_id>
-        <sys_mod_count>7</sys_mod_count>
+        <sys_mod_count>28</sys_mod_count>
         <sys_name>Generate Remote Definition</sys_name>
         <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
         <sys_policy/>
         <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
         <sys_update_name>sys_ui_page_7bb866b177210110266f78adaf5a997b</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2022-02-10 06:42:42</sys_updated_on>
+        <sys_updated_on>2022-03-27 14:45:55</sys_updated_on>
     </sys_ui_page>
 </record_update>

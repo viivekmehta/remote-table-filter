@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update sys_domain="global" table="sys_complex_object">
+    <sys_complex_object action="INSERT_OR_UPDATE">
+        <label/>
+        <name>FDe92dc1b0e86201107e155fc94b17a7c0</name>
+        <namespace>FlowDesigner</namespace>
+        <scope_name>36f7ea7177210110266f78adaf5a9955</scope_name>
+        <serialized_content>{"FlowDesigner:FDe92dc1b0e86201107e155fc94b17a7c0":{"user_id":"String","user_id.$field_facets":{"SimpleMapFacet":"{\"uiTypeLabel\":\"String\",\"read_only\":\"false\",\"hint\":\"\",\"uiType\":\"string\",\"default_value\":\"\",\"label\":\"User ID\",\"mandatory\":\"false\",\"order\":\"1\",\"max_length\":\"0\"}"},"order_id":"String","order_id.$field_facets":{"SimpleMapFacet":"{\"uiTypeLabel\":\"String\",\"read_only\":\"false\",\"hint\":\"\",\"uiType\":\"string\",\"default_value\":\"\",\"label\":\"Order ID\",\"mandatory\":\"false\",\"order\":\"2\",\"max_length\":\"0\"}"}},"FlowDesigner:FDe92dc1b0e86201107e155fc94b17a7c0.$type_facets":{"SimpleMapFacet":"{\"sourceId\":\"\",\"default_value\":\"\",\"label\":\"Orders\",\"mandatory\":\"false\",\"uiUniqueId\":\"c047b07c-40a7-48c3-ae70-607fd4feab88\",\"uiTypeLabel\":\"Object\",\"co_type_name\":\"FDe92dc1b0e86201107e155fc94b17a7c0\",\"element_mapping_provider\":\"com.glide.flow_design.action.data.FlowDesignVariableMapper\",\"read_only\":\"false\",\"sourceUiUniqueId\":\"\",\"sourceType\":\"\",\"hint\":null,\"uiType\":\"object\",\"order\":\"1\",\"max_length\":\"65000\"}"}}</serialized_content>
+        <sys_class_name>sys_complex_object</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-03-27 15:52:33</sys_created_on>
+        <sys_domain>global</sys_domain>
+        <sys_id>ad2dc1b077620110266f78adaf5a99c0</sys_id>
+        <sys_mod_count>0</sys_mod_count>
+        <sys_name>FDe92dc1b0e86201107e155fc94b17a7c0</sys_name>
+        <sys_overrides/>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy/>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_complex_object_ad2dc1b077620110266f78adaf5a99c0</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-03-27 15:52:33</sys_updated_on>
+        <type>complex_object_schema</type>
+    </sys_complex_object>
+</record_update>

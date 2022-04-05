@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>public</access>
+        <active>true</active>
+        <api_name>sn_rt_csm_usecase.RemoteTableFiltersServerScript</api_name>
+        <caller_access/>
+        <client_callable>false</client_callable>
+        <description/>
+        <name>RemoteTableFiltersServerScript</name>
+        <script><![CDATA[var RemoteTableFiltersServerScript = Class.create();
+RemoteTableFiltersServerScript.prototype = {
+    initialize: function() {
+    },
+	
+	generateRedirectUri: function(remoteTableName, filtersArray){
+		var redirectUri;
+		filtersArray = JSON.parse(filtersArray);
+		redirectUri =  remoteTableName + "_list.do?sysparm_query=&sysparm_first_row=1&sysparm_view=";
+		return redirectUri;
+	},
+	 
+    type: 'RemoteTableFiltersServerScript'
+};]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2022-02-25 16:34:21</sys_created_on>
+        <sys_id>69f6324b77310110266f78adaf5a99ee</sys_id>
+        <sys_mod_count>2</sys_mod_count>
+        <sys_name>RemoteTableFiltersServerScript</sys_name>
+        <sys_package display_value="RT CSM UseCase" source="sn_rt_csm_usecase">36f7ea7177210110266f78adaf5a9955</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="RT CSM UseCase">36f7ea7177210110266f78adaf5a9955</sys_scope>
+        <sys_update_name>sys_script_include_69f6324b77310110266f78adaf5a99ee</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2022-03-26 18:16:11</sys_updated_on>
+    </sys_script_include>
+</record_update>
